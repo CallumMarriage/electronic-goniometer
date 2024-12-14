@@ -1,15 +1,14 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PanResponder, View, StyleSheet, Animated, Text, Dimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-const { width, height } = Dimensions.get('window')
 
 export const MoveablePoint = (props) => {
     const pan = useRef(new Animated.ValueXY({x: props.x, y: props.y})).current;
 
     useEffect(() => {
       pan.addListener((value) => {
-        props.setX(value.x + 25)
-        props.setY(value.y + 75)
+        props.setX(value.x)
+        props.setY(value.y)
       });
   
       return () => {
@@ -40,11 +39,10 @@ export const MoveablePoint = (props) => {
       })
     ).current;
 
-    return (
+    return ( 
           <Animated.View
             style={{
-              transform: [{translateX: Animated.diffClamp(pan.x, 0, width - 25)}, {translateY: Animated.diffClamp(pan.y, 0, height - 25)}
-              ],
+              transform: [{translateX: pan.x,}, {translateY: pan.y}],
               zIndex: props.zIndex
             }}
             {...panResponder.panHandlers}>
