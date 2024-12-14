@@ -7,6 +7,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { Combination } from '@/components/Combination';
 import { GroupedCombination } from '@/components/GroupedCombination';
+import { AngledCombination } from '@/components/AngledCombination';
 
 export default function HomeScreen() {
   
@@ -14,7 +15,7 @@ export default function HomeScreen() {
     <SafeAreaProvider>
          <SafeAreaView>
            {/* <Combination/> */}
-           <GroupedCombination/>
+           <AngledCombination/>
         </SafeAreaView>
     </SafeAreaProvider>
   );
