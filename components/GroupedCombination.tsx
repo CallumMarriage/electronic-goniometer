@@ -63,15 +63,9 @@ export const GroupedCombination = (props) => {
             if(value.y >= 0 && value.y <= dimensions.window.height) {
                 coordinates.y = value.y
             }
-            console.log(value)
-            console.log(panPosition.x + ':' + panPosition.y + ' - ' +coordinates.x + ':' + coordinates.y)
             setPanPosition(coordinates)
         });
-
-        return () => {
-            groupPan.removeAllListeners();
-          };
-    })
+    }, [groupPan])
 
 
     return (
