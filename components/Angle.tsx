@@ -1,22 +1,25 @@
 import { StyleSheet } from "react-native"
-import Svg, { Path, Text } from "react-native-svg"
+import Svg, { Path, Text, TSpan } from "react-native-svg"
 import { Coordinates, Line } from "./AngledCombination"
 import { useEffect, useState } from "react"
 
 type Props = {
     lineOne: Line,
     lineTwo: Line, 
-    setAngle: (angle: number) => void,
+    setAngle?: (angle: number) => void,
     window: {
         height: number,
         width: number
-    }
+    },
+    color: string
 }
 
 export const Angle = (props: Props) => {
     
     useEffect(() => {
-        props.setAngle(calculateAngle(props.lineOne.end, props.lineOne.start, props.lineTwo.end))
+        if(props.setAngle != undefined) {
+            props.setAngle(calculateAngle(props.lineOne.end, props.lineOne.start, props.lineTwo.end))
+        }
     }, [props.lineOne, props.lineTwo])
 
     const vector1 = {
@@ -55,17 +58,15 @@ export const Angle = (props: Props) => {
             x: center.x + radius * Math.cos(endAngle),
             y: center.y + radius * Math.sin(endAngle)
         }
-
-        const largeArcFlag = endAngle - startAngle < 0 && endAngle - startAngle > (0 - Math.PI) ? '0' : '1'
-
-        return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`
+        
+        return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 0 ${end.x} ${end.y}`
     }
 
     const arcPath = calculateArcPath(props.lineOne.start, 50, startAngle, endAngle)
 
     return (
         <Svg height={props.window.height} width={props.window.width} style={[StyleSheet.absoluteFill, { zIndex: 1, overflow: 'visible' }]}>
-            <Path d={arcPath} stroke="red" strokeWidth={2} fill={"none"} />
+            <Path d={arcPath} stroke={props.color} strokeWidth={2} fill={"none"} />
           </Svg>
     )
 }

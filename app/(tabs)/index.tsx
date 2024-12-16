@@ -1,8 +1,5 @@
 import { Image, StyleSheet, Platform, View, Text } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
 
-import { MoveablePoint } from '@/components/MoveablePoint';
-import { Point } from '@/components/Point';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { AngledCombination } from '@/components/AngledCombination';
@@ -28,9 +25,11 @@ export default function HomeScreen() {
           </View>
           <View style={[styles.bottom]}>
             <Text style={styles.baseText}>
-              <Text style={[styles.titleText]}>
+              <Text style={[styles.titleText, {color: 'red'}]}>
                 Angle A: {Math.round(angleA)}°
                 {'\n'}
+              </Text>
+              <Text style={[styles.titleText, {color: 'green'}]}>
                 Angle B: {Math.round(angleB)}°
               </Text>
             </Text>
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
     flex: 10
   },
   bottom: {
-    backgroundColor: '#00e6ac',
+    backgroundColor: 'white',
     flex: 1
   }
 });

@@ -99,6 +99,17 @@ export const AngledCombination = (props: Props) => {
         end: { x: panPosition.x, y: panPosition.y + fixedPointTransformation }
     }
 
+    const lineFromCenterToBottom = {
+        start: { x: panPosition.x, y: panPosition.y },
+        end: { x: panPosition.x, y: panPosition.y - fixedPointTransformation }
+    }
+
+    const lineFromCenterToOppositeRotated = {
+        start: { x: panPosition.x, y: panPosition.y },
+        // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
+        end: { x: panPosition.x - rotatedPointX + radius, y: panPosition.y + diameter - rotatedPointY + radius }
+    }
+
     return (
         <View id="container">
             <Animated.View
@@ -130,6 +141,7 @@ export const AngledCombination = (props: Props) => {
                 width={dimensions.window.width}
                 height={dimensions.window.height}
                 radius={diameter}
+                color="green"
             />
 
             <LineBetweenPoints
@@ -138,8 +150,32 @@ export const AngledCombination = (props: Props) => {
                 width={dimensions.window.width}
                 height={dimensions.window.height}
                 radius={diameter}
+                color="red"
             />
-            <Angle window={window} lineOne={lineFromCenterToRotated} lineTwo={lineFromCenterToFixed} setAngle={props.setAngle} />
+
+            <LineBetweenPoints
+                source={lineFromCenterToBottom.start}
+                target={lineFromCenterToBottom.end}
+                width={dimensions.window.width}
+                height={dimensions.window.height}
+                radius={diameter}
+                color="red"
+            />
+
+            <LineBetweenPoints
+                source={lineFromCenterToOppositeRotated.start}
+                target={lineFromCenterToOppositeRotated.end}
+                width={dimensions.window.width}
+                height={dimensions.window.height}
+                radius={diameter}
+                color="green"
+            />
+            <Angle window={window} lineOne={lineFromCenterToFixed} lineTwo={lineFromCenterToRotated} setAngle={props.setAngle} color="red" />
+            <Angle window={window} lineOne={lineFromCenterToRotated} lineTwo={lineFromCenterToBottom} color="green" />
+            <Angle window={window} lineOne={lineFromCenterToBottom} lineTwo={lineFromCenterToOppositeRotated} color="red"/>
+            <Angle window={window} lineOne={lineFromCenterToOppositeRotated} lineTwo={lineFromCenterToFixed} color="green"/>
+
+
         </View>
     )
 }
