@@ -1,26 +1,48 @@
 import { useEffect, useRef, useState } from "react"
-import { Animated, Dimensions, PanResponder, StyleSheet, View } from "react-native"
+import { Animated, Dimensions, PanResponder, StyleSheet, Text, View } from "react-native"
 import { MoveablePoint } from "./MoveablePoint"
-import Svg, { Line, Path } from "react-native-svg"
 import { LineBetweenPoints } from "./LineBetweenPoints"
+import { Angle } from "./Angle"
 
 const window = Dimensions.get('window')
 
-export const AngledCombination = (props) => {
+export type Coordinates = {
+    x: number,
+    y: number
+}
 
-    const [panPosition, setPanPosition] = useState({ x: 0, y: 0 })
+export type Line = {
+    start: Coordinates,
+    end: Coordinates
+}
 
-    const [rotatedPointX, setRotatedPointX] = useState(0)
-    const [rotatedPointY, setRotatedPointY] = useState(0)
+type Props = {
+    setAngle: (angle: number) => void,
+    diameter: number
+}
 
-    const [fixedPointX, setFixedPointX] = useState(0)
-    const [fixedPointY, setFixedPointY] = useState(0)
+export const AngledCombination = (props: Props) => {
+    const diameter = props.diameter
+    const radius = diameter / 2
 
-    const groupPan = useRef(new Animated.ValueXY()).current
     const [dimensions, setDimensions] = useState({
         window: window
     });
 
+    const [panPosition, setPanPosition] = useState<Coordinates>({ x: 0, y: 0 })
+
+    const [rotatedPointX, setRotatedPointX] = useState(0)
+    const [rotatedPointY, setRotatedPointY] = useState(0)
+
+    const [lineFromCenterToRotated, setLineFromCenterToRotated] = useState<Line>({
+        start: { x: panPosition.x, y: panPosition.y },
+        // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
+        end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y + rotatedPointY - radius }
+    })
+
+    const fixedPointTransformation = -200
+
+    const groupPan = useRef(new Animated.ValueXY({x:0, y: 0 - diameter})).current
 
     useEffect(() => {
         const subscription = Dimensions.addEventListener(
@@ -56,108 +78,58 @@ export const AngledCombination = (props) => {
 
     useEffect(() => {
         groupPan.addListener((value) => {
-            let coordinates = { x: panPosition.x, y: panPosition.y }
-            if (value.x >= 0 && value.x < dimensions.window.width) {
-                coordinates.x = value.x
-            }
-            if (value.y >= 0 && value.y <= dimensions.window.height) {
-                coordinates.y = value.y
-            }
-            setPanPosition(coordinates)
+            setPanPosition({
+                x: value.x + radius,
+                y: value.y + radius + diameter
+            })
         });
     }, [groupPan])
 
-
-    const lineFromCenterToRotated = {
-        start: { x: panPosition.x + 25, y: panPosition.y + 200 + 75 },
-        end: { x: panPosition.x + rotatedPointX + 25, y: panPosition.y + rotatedPointY + 125 }
-    }
+    useEffect(() => {
+        setLineFromCenterToRotated(
+            {
+                start: { x: panPosition.x, y: panPosition.y },
+                // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
+                end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y - diameter + rotatedPointY - radius }
+            })
+    }, [radius, panPosition, rotatedPointX, rotatedPointY])
 
     const lineFromCenterToFixed = {
-        start: { x: panPosition.x + 25, y: panPosition.y + 200 + 100 },
-        end: { x: panPosition.x + 25, y: panPosition.y }
+        start: { x: panPosition.x, y: panPosition.y },
+        end: { x: panPosition.x, y: panPosition.y + fixedPointTransformation }
     }
 
-    const vector1 = {
-        x: lineFromCenterToRotated.end.x - lineFromCenterToRotated.start.x,
-        y: lineFromCenterToRotated.end.y - lineFromCenterToRotated.start.y
-    }
-
-    const vector2 = {
-        x: lineFromCenterToFixed.end.x - lineFromCenterToFixed.start.x,
-        y: lineFromCenterToFixed.end.y - lineFromCenterToFixed.start.y
-    }
-
-    const magnitude = (vector: { x: number, y: number }) => Math.sqrt(vector.x ** 2 + vector.y ** 2)
-
-    const unitVector1 = {
-        x: vector1.x / magnitude(vector1),
-        y: vector1.y / magnitude(vector1)
-    }
-
-    const unitVector2 = {
-        x: vector2.x / magnitude(vector2),
-        y: vector2.y / magnitude(vector2)
-    }
-
-    const angleOfVector = (vector: { x: number, y: number }) => Math.atan2(vector.y, vector.x)
-
-    const startAngle = angleOfVector(unitVector1)
-    const endAngle = angleOfVector(unitVector2)
-
-    const calculateArcPath = (center, radius, startAngle, endAngle) => {
-        const start = {
-            x: center.x + radius * Math.cos(startAngle),
-            y: center.y + radius * Math.sin(startAngle)
-        }
-        const end = {
-            x: center.x + radius * Math.cos(endAngle),
-            y: center.y + radius * Math.sin(endAngle)
-        }
-
-        const largeArcFlag = endAngle - startAngle <= Math.PI ? '0' : '1'
-
-        return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`
-    }
-
-    const arcPath = calculateArcPath(lineFromCenterToRotated.start, 50, startAngle, endAngle)
-
-    console.log('Path ' + arcPath)
     return (
-        <View style={[styles.container]} id="container">
+        <View id="container">
             <Animated.View
                 id="animated-view"
                 style={{
-                    transform: [{ translateX: Animated.diffClamp(groupPan.x, 0, window.width) }, { translateY: Animated.diffClamp(groupPan.y, 0, window.height) }],
-                    // width: dimensions.window.width,
-                    // height: dimensions.window.height,
+                    transform: [{ translateX: groupPan.x }, { translateY: groupPan.y }],
                     overflow: 'visible',
-                    zIndex: 99
-                }}
+                    zIndex: 97
+                 }}
                 {...groupPanResponder.panHandlers}>
-                <View>
-                    <View style={[styles.circle, { transform: [{ translateX: fixedPointX }, { translateY: fixedPointY }], zIndex: 100 }]} />
-                    <View style={[styles.circle, { transform: [{ translateY: 200 }], zIndex: 100 }]} />
-
-                    <MoveablePoint
-                        setX={setRotatedPointX}
-                        setY={setRotatedPointY}
-                        dot={
-                            <View style={[styles.circle]}/>
-                        }
-                        window={dimensions.window}
-                        x={rotatedPointX}
-                        y={rotatedPointY}
-
-                        zIndex={100}
-                    />
-                </View>
+                <MoveablePoint
+                    setX={setRotatedPointX}
+                    setY={setRotatedPointY}
+                    dot={
+                        <View style={[styles({ radius: diameter }).circle]} />
+                    }
+                    window={dimensions.window}
+                    x={rotatedPointX}
+                    y={rotatedPointY}
+                    radius={radius}
+                    zIndex={100}
+                />
+                <View style={[styles({ radius: diameter }).circle, { zIndex: 99}]} />
+                <View style={[styles({ radius: diameter }).circle, { transform: [{ translateY: fixedPointTransformation }], zIndex: 98 }]} />
             </Animated.View>
             <LineBetweenPoints
                 source={lineFromCenterToRotated.start}
                 target={lineFromCenterToRotated.end}
                 width={dimensions.window.width}
                 height={dimensions.window.height}
+                radius={diameter}
             />
 
             <LineBetweenPoints
@@ -165,33 +137,25 @@ export const AngledCombination = (props) => {
                 target={lineFromCenterToFixed.end}
                 width={dimensions.window.width}
                 height={dimensions.window.height}
+                radius={diameter}
             />
-            <Svg height={window.height} width={window.width} style={[StyleSheet.absoluteFill, { zIndex: 1, overflow: 'visible' }]}>
-                <Path d={arcPath} stroke="red" strokeWidth={2} fill={"none"} />
-            </Svg>
+            <Angle window={window} lineOne={lineFromCenterToRotated} lineTwo={lineFromCenterToFixed} setAngle={props.setAngle} />
         </View>
     )
 }
 
 
-const styles = StyleSheet.create({
+const styles = (props?: any) => StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f0f0f0',
-        justifyContent: 'center',
-        overflow: 'visible'
-    },
-
+        justifyContent: 'center'
+        },
     circle: {
-        height: 50,
-        width: 50,
+        height: props.radius,
+        width: props.radius,
         backgroundColor: 'blue',
-        borderRadius: 50,
-        justifyContent: 'center',
-        alignContent: 'center'
+        borderRadius: 50
     },
     animatedView: {
         overflow: 'visible'
     }
-}
-);
+});
