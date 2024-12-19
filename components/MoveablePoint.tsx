@@ -21,9 +21,7 @@ export const MoveablePoint = (props: Props) => {
 
   useEffect(() => {
     pan.addListener((value) => {
-      if(value.x <= 0) {
-        props.setX(value.x + props.radius)
-      }
+      props.setX(value.x + props.radius)
       props.setY(value.y + props.radius)
     });
   }, [pan])
@@ -56,7 +54,7 @@ export const MoveablePoint = (props: Props) => {
   return (
     <Animated.View
       style={{
-        transform: [{ translateX: Animated.diffClamp(pan.x, 0 - props.window.width, 0) }, { translateY: pan.y }],
+        transform: [{ translateX: pan.x }, { translateY: pan.y }],
         zIndex: props.zIndex
       }}
       {...panResponder.panHandlers}>

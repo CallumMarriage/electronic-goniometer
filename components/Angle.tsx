@@ -15,21 +15,22 @@ type Props = {
 }
 
 export const Angle = (props: Props) => {
+    const {lineOne, lineTwo} = props
     
     useEffect(() => {
         if(props.setAngle != undefined) {
             props.setAngle(calculateAngle(props.lineOne.end, props.lineOne.start, props.lineTwo.end))
         }
-    }, [props.lineOne, props.lineTwo])
+    }, [lineOne, lineTwo])
 
     const vector1 = {
-        x: props.lineOne.end.x - props.lineOne.start.x,
-        y: props.lineOne.end.y - props.lineOne.start.y
+        x: lineOne.end.x - lineOne.start.x,
+        y: lineOne.end.y - lineOne.start.y
     }
 
     const vector2 = {
-        x: props.lineTwo.end.x - props.lineTwo.start.x,
-        y: props.lineTwo.end.y - props.lineTwo.start.y
+        x: lineTwo.end.x - lineTwo.start.x,
+        y: lineTwo.end.y - lineTwo.start.y
     }
 
     const magnitude = (vector: { x: number, y: number }) => Math.sqrt(vector.x ** 2 + vector.y ** 2)

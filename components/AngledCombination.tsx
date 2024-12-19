@@ -34,15 +34,9 @@ export const AngledCombination = (props: Props) => {
     const [rotatedPointX, setRotatedPointX] = useState(0)
     const [rotatedPointY, setRotatedPointY] = useState(0)
 
-    const [lineFromCenterToRotated, setLineFromCenterToRotated] = useState<Line>({
-        start: { x: panPosition.x, y: panPosition.y },
-        // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-        end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y + rotatedPointY - radius }
-    })
-
     const fixedPointTransformation = -200
 
-    const groupPan = useRef(new Animated.ValueXY({x:0, y: 0 - diameter})).current
+    const groupPan = useRef(new Animated.ValueXY({ x: 0, y: 0 - diameter })).current
 
     useEffect(() => {
         const subscription = Dimensions.addEventListener(
@@ -85,29 +79,50 @@ export const AngledCombination = (props: Props) => {
         });
     }, [groupPan])
 
-    useEffect(() => {
-        setLineFromCenterToRotated(
-            {
-                start: { x: panPosition.x, y: panPosition.y },
-                // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-                end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y - diameter + rotatedPointY - radius }
-            })
-    }, [radius, panPosition, rotatedPointX, rotatedPointY])
+    const center = { x: panPosition.x, y: panPosition.y }
+
+    const lineFromCenterToRotated = {
+        start: center,
+        // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
+        end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y - diameter + rotatedPointY - radius }
+    }
 
     const lineFromCenterToFixed = {
-        start: { x: panPosition.x, y: panPosition.y },
+        start: center,
         end: { x: panPosition.x, y: panPosition.y + fixedPointTransformation }
     }
 
     const lineFromCenterToBottom = {
-        start: { x: panPosition.x, y: panPosition.y },
+        start: center,
         end: { x: panPosition.x, y: panPosition.y - fixedPointTransformation }
     }
 
     const lineFromCenterToOppositeRotated = {
-        start: { x: panPosition.x, y: panPosition.y },
+        start: center,
         // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
         end: { x: panPosition.x - rotatedPointX + radius, y: panPosition.y + diameter - rotatedPointY + radius }
+    }
+
+    const shouldFlipAngles = lineFromCenterToRotated.end.x < lineFromCenterToRotated.start.x
+
+    const redAnglePositive = {
+        lineOne: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToRotated,
+        lineTwo: shouldFlipAngles ? lineFromCenterToRotated : lineFromCenterToFixed
+    }
+
+    const greenAnglePositive = {
+        lineOne: shouldFlipAngles ? lineFromCenterToRotated : lineFromCenterToBottom,
+        lineTwo: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToRotated
+    }
+
+    const redAngleNegative = {
+        lineOne: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToOppositeRotated,
+        lineTwo: shouldFlipAngles ? lineFromCenterToOppositeRotated : lineFromCenterToBottom
+    }
+
+    const greenAngleNegative = {
+        lineOne: shouldFlipAngles ? lineFromCenterToOppositeRotated : lineFromCenterToFixed,
+        lineTwo: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToOppositeRotated
     }
 
     return (
@@ -118,7 +133,7 @@ export const AngledCombination = (props: Props) => {
                     transform: [{ translateX: groupPan.x }, { translateY: groupPan.y }],
                     overflow: 'visible',
                     zIndex: 97
-                 }}
+                }}
                 {...groupPanResponder.panHandlers}>
                 <MoveablePoint
                     setX={setRotatedPointX}
@@ -132,7 +147,7 @@ export const AngledCombination = (props: Props) => {
                     radius={radius}
                     zIndex={100}
                 />
-                <View style={[styles({ radius: diameter }).circle, { zIndex: 99}]} />
+                <View style={[styles({ radius: diameter }).circle, { zIndex: 99 }]} />
                 <View style={[styles({ radius: diameter }).circle, { transform: [{ translateY: fixedPointTransformation }], zIndex: 98 }]} />
             </Animated.View>
             <LineBetweenPoints
@@ -170,12 +185,10 @@ export const AngledCombination = (props: Props) => {
                 radius={diameter}
                 color="green"
             />
-            <Angle window={window} lineOne={lineFromCenterToFixed} lineTwo={lineFromCenterToRotated} setAngle={props.setAngle} color="red" />
-            <Angle window={window} lineOne={lineFromCenterToRotated} lineTwo={lineFromCenterToBottom} color="green" />
-            <Angle window={window} lineOne={lineFromCenterToBottom} lineTwo={lineFromCenterToOppositeRotated} color="red"/>
-            <Angle window={window} lineOne={lineFromCenterToOppositeRotated} lineTwo={lineFromCenterToFixed} color="green"/>
-
-
+            <Angle window={window} lineOne={redAnglePositive.lineOne} lineTwo={redAnglePositive.lineTwo} setAngle={props.setAngle} color="red" />
+            <Angle window={window} lineOne={greenAnglePositive.lineOne} lineTwo={greenAnglePositive.lineTwo} color="green" />
+            <Angle window={window} lineOne={redAngleNegative.lineOne} lineTwo={redAngleNegative.lineTwo} color="red" />
+            <Angle window={window} lineOne={greenAngleNegative.lineOne} lineTwo={greenAngleNegative.lineTwo} color="green" />
         </View>
     )
 }
@@ -184,7 +197,7 @@ export const AngledCombination = (props: Props) => {
 const styles = (props?: any) => StyleSheet.create({
     container: {
         justifyContent: 'center'
-        },
+    },
     circle: {
         height: props.radius,
         width: props.radius,
