@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { PanResponder, Animated } from "react-native";
-import { Coordinates } from "./AngledCombination";
+import { Coordinates } from "./Goniometer";
 
 type Props = {
   setPosition: (value: Coordinates) => void,

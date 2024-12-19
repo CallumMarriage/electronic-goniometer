@@ -1,11 +1,11 @@
 import { StyleSheet } from "react-native"
-import Svg, { Path} from "react-native-svg"
-import { Coordinates, Line } from "./AngledCombination"
+import Svg, { Path } from "react-native-svg"
+import { Coordinates, Line } from "./Goniometer"
 import { useEffect } from "react"
 
 type Props = {
     lineOne: Line,
-    lineTwo: Line, 
+    lineTwo: Line,
     setAngle?: (angle: number) => void,
     window: {
         height: number,
@@ -15,12 +15,12 @@ type Props = {
 }
 
 export const Angle = (props: Props) => {
-    const {lineOne, lineTwo} = props
+    const { lineOne, lineTwo } = props
 
     // This could be replaced with redux but it was causing an error on mobile.
     // The error was for trying to render to components at the same time. 
     useEffect(() => {
-        if(props.setAngle != undefined) {
+        if (props.setAngle != undefined) {
             props.setAngle(calculateAngle(props.lineOne.end, props.lineOne.start, props.lineTwo.end))
         }
     }, [lineOne, lineTwo])
@@ -61,7 +61,7 @@ export const Angle = (props: Props) => {
             x: center.x + radius * Math.cos(endAngle),
             y: center.y + radius * Math.sin(endAngle)
         }
-        
+
         return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 0 ${end.x} ${end.y}`
     }
 
@@ -70,19 +70,18 @@ export const Angle = (props: Props) => {
     return (
         <Svg height={props.window.height} width={props.window.width} style={[StyleSheet.absoluteFill, { zIndex: 1, overflow: 'visible' }]}>
             <Path d={arcPath} stroke={props.color} strokeWidth={2} fill={"none"} />
-          </Svg>
+        </Svg>
     )
 }
 
-
 // Added a second method to calculate the degrees to display as I could not get the above calculation to provide the correct degree.
 const calculateAngle = (a: Coordinates, b: Coordinates, c: Coordinates) => {
-    var AB = Math.sqrt(Math.pow(b.x-a.x,2)+ Math.pow(b.y-a.y,2));    
-    var BC = Math.sqrt(Math.pow(b.x-c.x,2)+ Math.pow(b.y-c.y,2)); 
-    var AC = Math.sqrt(Math.pow(c.x-a.x,2)+ Math.pow(c.y-a.y,2));
+    var AB = Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+    var BC = Math.sqrt(Math.pow(b.x - c.x, 2) + Math.pow(b.y - c.y, 2));
+    var AC = Math.sqrt(Math.pow(c.x - a.x, 2) + Math.pow(c.y - a.y, 2));
 
-    if(b.x > a.x) {
-        return 360 - ((Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * 180)/ Math.PI)
+    if (b.x > a.x) {
+        return 360 - ((Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB)) * 180) / Math.PI)
     }
-    return (Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * 180)/ Math.PI;
+    return (Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB)) * 180) / Math.PI;
 }

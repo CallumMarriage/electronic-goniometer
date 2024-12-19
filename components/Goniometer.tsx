@@ -3,6 +3,7 @@ import { Animated, Dimensions, PanResponder, StyleSheet, Text, View } from "reac
 import { MoveablePoint } from "./MoveablePoint"
 import { LineBetweenPoints } from "./LineBetweenPoints"
 import { Angle } from "./Angle"
+import { Circle } from "./Circle"
 
 const window = Dimensions.get('window')
 
@@ -21,7 +22,7 @@ type Props = {
     diameter: number
 }
 
-export const AngledCombination = (props: Props) => {
+export const Goniometer = (props: Props) => {
     const diameter = props.diameter
     const radius = diameter / 2
     const [component, setComponent] = useState({
@@ -132,7 +133,7 @@ export const AngledCombination = (props: Props) => {
     // The lines should be inside the animated view, if they were the storing of the 'component' and 'center'
     // However, there is an issue withe the view box not being centered on (0,0) which means that the the SVGs are not completetly visible.
     return (
-        <View style={styles({ radius: diameter }).container} id="container">
+        <View style={styles.container} id="container">
             <Animated.View
                 id="animated-view"
                 style={{
@@ -149,14 +150,14 @@ export const AngledCombination = (props: Props) => {
                 <MoveablePoint
                     setPosition={setMoveablePoint}
                     dot={
-                        <View style={[styles({ radius: diameter }).circle]} />
+                        <Circle diameter={diameter} color="green" zIndex={100} transformY={0}/>
                     }
                     window={dimensions.window}
                     radius={radius}
                     zIndex={100}
                 />
-                <View style={[styles({ radius: diameter }).circle, { zIndex: 99 }]} />
-                <View style={[styles({ radius: diameter }).circle, { transform: [{ translateY: fixedPointTransformation }], zIndex: 98 }]} />
+                <Circle diameter={diameter} color="blue" zIndex={99} transformY={0}/>
+                <Circle diameter={diameter} color="blue" zIndex={98} transformY={fixedPointTransformation}/>
             </Animated.View>
             <LineBetweenPoints
                 source={lineFromCenterToMoveable.start}
@@ -203,17 +204,11 @@ export const AngledCombination = (props: Props) => {
 
 
 // TODO Refactor so that props are only required when accessing the circle styles
-const styles = (props?: any) => StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'
-    },
-    circle: {
-        height: props.radius,
-        width: props.radius,
-        backgroundColor: 'blue',
-        borderRadius: 50
     },
     animatedView: {
         overflow: 'visible'

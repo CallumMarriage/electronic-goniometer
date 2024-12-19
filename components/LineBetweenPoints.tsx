@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native"
 import Svg, { Line } from "react-native-svg"
-import { Coordinates } from "./AngledCombination"
+import { Coordinates } from "./Goniometer"
 
 type Props = {
     radius: number,

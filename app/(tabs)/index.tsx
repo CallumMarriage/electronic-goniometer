@@ -1,8 +1,8 @@
-import { Image, StyleSheet, Platform, View, Text } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
-import { AngledCombination } from '@/components/AngledCombination';
+import { Goniometer } from '@/components/Goniometer';
 
 export default function HomeScreen() {
 
@@ -14,34 +14,34 @@ export default function HomeScreen() {
   }, [angleA])
 
   return (
- 
-        <View style={styles.container}>
-          <View style={styles.content} id={"content"}>
-            <SafeAreaProvider>
-              <SafeAreaView style={styles.container}>
-              <AngledCombination diameter={25} setAngle={setAngleA} />
-              </SafeAreaView>
-            </SafeAreaProvider>
-          </View>
-          <View style={[styles.bottom]}>
-            <Text style={styles.baseText}>
-              <Text style={[styles.titleText, {color: 'red'}]}>
-                Angle A: {Math.round(angleA)}°
-                {'\n'}
-              </Text>
-              <Text style={[styles.titleText, {color: 'green'}]}>
-                Angle B: {Math.round(angleB)}°
-              </Text>
-            </Text>
-          </View>
-        </View>
+
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.container}>
+            <Goniometer diameter={25} setAngle={setAngleA} />
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </View>
+      <View style={[styles.bottom]}>
+        <Text style={styles.baseText}>
+          <Text style={[styles.titleText, { color: 'red' }]}>
+            Angle A: {Math.round(angleA)}°
+            {'\n'}
+          </Text>
+          <Text style={[styles.titleText, { color: 'green' }]}>
+            Angle B: {Math.round(angleB)}°
+          </Text>
+        </Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-  flex: 1,
-  flexDirection: 'column'
+    flex: 1,
+    flexDirection: 'column'
   },
   baseText: {
     fontFamily: 'Cochin',
