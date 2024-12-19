@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native"
-import Svg, { Path, Text, TSpan } from "react-native-svg"
+import Svg, { Path} from "react-native-svg"
 import { Coordinates, Line } from "./AngledCombination"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 type Props = {
     lineOne: Line,
@@ -16,7 +16,9 @@ type Props = {
 
 export const Angle = (props: Props) => {
     const {lineOne, lineTwo} = props
-    
+
+    // This could be replaced with redux but it was causing an error on mobile.
+    // The error was for trying to render to components at the same time. 
     useEffect(() => {
         if(props.setAngle != undefined) {
             props.setAngle(calculateAngle(props.lineOne.end, props.lineOne.start, props.lineTwo.end))
@@ -73,8 +75,8 @@ export const Angle = (props: Props) => {
 }
 
 
+// Added a second method to calculate the degrees to display as I could not get the above calculation to provide the correct degree.
 const calculateAngle = (a: Coordinates, b: Coordinates, c: Coordinates) => {
-
     var AB = Math.sqrt(Math.pow(b.x-a.x,2)+ Math.pow(b.y-a.y,2));    
     var BC = Math.sqrt(Math.pow(b.x-c.x,2)+ Math.pow(b.y-c.y,2)); 
     var AC = Math.sqrt(Math.pow(c.x-a.x,2)+ Math.pow(c.y-a.y,2));

@@ -1,5 +1,4 @@
-import { useRef } from "react"
-import { Animated, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
 import Svg, { Line } from "react-native-svg"
 import { Coordinates } from "./AngledCombination"
 
@@ -13,16 +12,13 @@ type Props = {
 }
 
 export const LineBetweenPoints = (props: Props) => {
-
     const edgeSource = getEdges(props.radius, props.source, props.target)
-
     const edgeTarget = getEdges(props.radius, props.target, props.source)
 
     return (
         <Svg height={props.height}
             width={props.width}
-            style={[StyleSheet.absoluteFill, styles.line, { zIndex: 2, overflow: 'visible' }]}
-        >
+            style={[StyleSheet.absoluteFill, styles.line, { zIndex: 2, overflow: 'visible' }]}>
             <Line x1={edgeSource.x} y1={edgeSource.y} x2={edgeTarget.x} y2={edgeTarget.y} stroke={props.color} strokeWidth="4" />
         </Svg>
     )

@@ -1,17 +1,14 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { PanResponder, View, StyleSheet, Animated, Text, Dimensions } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useRef } from "react";
+import { PanResponder, Animated } from "react-native";
+import { Coordinates } from "./AngledCombination";
 
 type Props = {
-  setX: (x: number) => void,
-  setY: (x: number) => void,
+  setPosition: (value: Coordinates) => void,
   dot: any
   window: {
     width: number,
     height: number
   },
-  x: number,
-  y: number,
   radius: number,
   zIndex: number
 }
@@ -21,8 +18,7 @@ export const MoveablePoint = (props: Props) => {
 
   useEffect(() => {
     pan.addListener((value) => {
-      props.setX(value.x + props.radius)
-      props.setY(value.y + props.radius)
+      props.setPosition({ x: value.x + props.radius, y: value.y + props.radius })
     });
   }, [pan])
 

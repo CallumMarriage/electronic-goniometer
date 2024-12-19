@@ -24,26 +24,17 @@ type Props = {
 export const AngledCombination = (props: Props) => {
     const diameter = props.diameter
     const radius = diameter / 2
-
     const [component, setComponent] = useState({
         x: 0,
         y: 0,
         width: 0,
         height: 0
     })
-    const [dimensions, setDimensions] = useState({
-        window: window
-    });
-
+    const [dimensions, setDimensions] = useState({ window: window });
     const [panPosition, setPanPosition] = useState<Coordinates>({ x: 0, y: 0 })
-
-    const [rotatedPointX, setRotatedPointX] = useState(0)
-    const [rotatedPointY, setRotatedPointY] = useState(0)
-
+    const [moveablePoint, setMoveablePoint] = useState<Coordinates>({ x: 0, y: 0 })
     const [center, setCenter] = useState<Coordinates>({ x: 0, y: 0 })
-
     const fixedPointTransformation = -200
-
     const groupPan = useRef(new Animated.ValueXY({ x: 0, y: 0 - diameter })).current
 
     useEffect(() => {
@@ -78,6 +69,7 @@ export const AngledCombination = (props: Props) => {
         })
     ).current;
 
+    // This two useEffects cause poor performance on Android due to repeated set state calls.
     useEffect(() => {
         groupPan.addListener((value) => {
             const updated = {
@@ -89,13 +81,13 @@ export const AngledCombination = (props: Props) => {
     }, [groupPan])
 
     useEffect(() => {
-        setCenter({ x: component.x + panPosition.x , y: component.y + panPosition.y  })
+        setCenter({ x: component.x + panPosition.x, y: component.y + panPosition.y })
     }, [panPosition])
 
-    const lineFromCenterToRotated = {
+    const lineFromCenterToMoveable = {
         start: center,
         // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-        end: { x: center.x + rotatedPointX - radius, y: center.y - diameter + rotatedPointY - radius }
+        end: { x: center.x + moveablePoint.x - radius, y: center.y - diameter + moveablePoint.y - radius }
     }
 
     const lineFromCenterToFixed = {
@@ -108,35 +100,37 @@ export const AngledCombination = (props: Props) => {
         end: { x: center.x, y: center.y - fixedPointTransformation }
     }
 
-    const lineFromCenterToOppositeRotated = {
+    const lineFromCenterToOppositeMoveable = {
         start: center,
         // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-        end: { x: center.x - rotatedPointX + radius, y: center.y + diameter - rotatedPointY + radius }
+        end: { x: center.x - moveablePoint.x + radius, y: center.y + diameter - moveablePoint.y + radius }
     }
 
-    const shouldFlipAngles = lineFromCenterToRotated.end.x < lineFromCenterToRotated.start.x
+    // Needed to create these objects to allow roatating the moving point 360 degrees.
+    const shouldFlipAngles = lineFromCenterToMoveable.end.x < lineFromCenterToMoveable.start.x
 
     const redAnglePositive = {
-        lineOne: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToRotated,
-        lineTwo: shouldFlipAngles ? lineFromCenterToRotated : lineFromCenterToFixed
+        lineOne: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToMoveable,
+        lineTwo: shouldFlipAngles ? lineFromCenterToMoveable : lineFromCenterToFixed
     }
 
     const greenAnglePositive = {
-        lineOne: shouldFlipAngles ? lineFromCenterToRotated : lineFromCenterToBottom,
-        lineTwo: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToRotated
+        lineOne: shouldFlipAngles ? lineFromCenterToMoveable : lineFromCenterToBottom,
+        lineTwo: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToMoveable
     }
 
     const redAngleNegative = {
-        lineOne: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToOppositeRotated,
-        lineTwo: shouldFlipAngles ? lineFromCenterToOppositeRotated : lineFromCenterToBottom
+        lineOne: shouldFlipAngles ? lineFromCenterToBottom : lineFromCenterToOppositeMoveable,
+        lineTwo: shouldFlipAngles ? lineFromCenterToOppositeMoveable : lineFromCenterToBottom
     }
 
     const greenAngleNegative = {
-        lineOne: shouldFlipAngles ? lineFromCenterToOppositeRotated : lineFromCenterToFixed,
-        lineTwo: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToOppositeRotated
+        lineOne: shouldFlipAngles ? lineFromCenterToOppositeMoveable : lineFromCenterToFixed,
+        lineTwo: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToOppositeMoveable
     }
-    console.log(component)
 
+    // The lines should be inside the animated view, if they were the storing of the 'component' and 'center'
+    // However, there is an issue withe the view box not being centered on (0,0) which means that the the SVGs are not completetly visible.
     return (
         <View style={styles({ radius: diameter }).container} id="container">
             <Animated.View
@@ -149,18 +143,15 @@ export const AngledCombination = (props: Props) => {
                 onLayout={(event) => {
                     const layout = event.nativeEvent.layout
                     setComponent(layout)
-                    setCenter({ x: layout.x + panPosition.x +radius , y: layout.y + panPosition.y + radius  })
+                    setCenter({ x: layout.x + panPosition.x + radius, y: layout.y + panPosition.y + radius })
                 }}
                 {...groupPanResponder.panHandlers}>
                 <MoveablePoint
-                    setX={setRotatedPointX}
-                    setY={setRotatedPointY}
+                    setPosition={setMoveablePoint}
                     dot={
                         <View style={[styles({ radius: diameter }).circle]} />
                     }
                     window={dimensions.window}
-                    x={rotatedPointX}
-                    y={rotatedPointY}
                     radius={radius}
                     zIndex={100}
                 />
@@ -168,8 +159,8 @@ export const AngledCombination = (props: Props) => {
                 <View style={[styles({ radius: diameter }).circle, { transform: [{ translateY: fixedPointTransformation }], zIndex: 98 }]} />
             </Animated.View>
             <LineBetweenPoints
-                source={lineFromCenterToRotated.start}
-                target={lineFromCenterToRotated.end}
+                source={lineFromCenterToMoveable.start}
+                target={lineFromCenterToMoveable.end}
                 width={dimensions.window.width}
                 height={dimensions.window.height}
                 radius={diameter}
@@ -195,8 +186,8 @@ export const AngledCombination = (props: Props) => {
             />
 
             <LineBetweenPoints
-                source={lineFromCenterToOppositeRotated.start}
-                target={lineFromCenterToOppositeRotated.end}
+                source={lineFromCenterToOppositeMoveable.start}
+                target={lineFromCenterToOppositeMoveable.end}
                 width={dimensions.window.width}
                 height={dimensions.window.height}
                 radius={diameter}
