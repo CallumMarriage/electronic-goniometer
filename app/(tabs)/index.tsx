@@ -18,7 +18,7 @@ export default function HomeScreen() {
         <View style={styles.container}>
           <View style={styles.content} id={"content"}>
             <SafeAreaProvider>
-              <SafeAreaView>
+              <SafeAreaView style={styles.container}>
               <AngledCombination diameter={25} setAngle={setAngleA} />
               </SafeAreaView>
             </SafeAreaProvider>

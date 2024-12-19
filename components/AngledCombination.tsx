@@ -25,6 +25,12 @@ export const AngledCombination = (props: Props) => {
     const diameter = props.diameter
     const radius = diameter / 2
 
+    const [component, setComponent] = useState({
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+    })
     const [dimensions, setDimensions] = useState({
         window: window
     });
@@ -33,6 +39,8 @@ export const AngledCombination = (props: Props) => {
 
     const [rotatedPointX, setRotatedPointX] = useState(0)
     const [rotatedPointY, setRotatedPointY] = useState(0)
+
+    const [center, setCenter] = useState<Coordinates>({ x: 0, y: 0 })
 
     const fixedPointTransformation = -200
 
@@ -72,35 +80,38 @@ export const AngledCombination = (props: Props) => {
 
     useEffect(() => {
         groupPan.addListener((value) => {
-            setPanPosition({
+            const updated = {
                 x: value.x + radius,
                 y: value.y + radius + diameter
-            })
+            }
+            setPanPosition(updated)
         });
     }, [groupPan])
 
-    const center = { x: panPosition.x, y: panPosition.y }
+    useEffect(() => {
+        setCenter({ x: component.x + panPosition.x , y: component.y + panPosition.y  })
+    }, [panPosition])
 
     const lineFromCenterToRotated = {
         start: center,
         // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-        end: { x: panPosition.x + rotatedPointX - radius, y: panPosition.y - diameter + rotatedPointY - radius }
+        end: { x: center.x + rotatedPointX - radius, y: center.y - diameter + rotatedPointY - radius }
     }
 
     const lineFromCenterToFixed = {
         start: center,
-        end: { x: panPosition.x, y: panPosition.y + fixedPointTransformation }
+        end: { x: center.x, y: center.y + fixedPointTransformation }
     }
 
     const lineFromCenterToBottom = {
         start: center,
-        end: { x: panPosition.x, y: panPosition.y - fixedPointTransformation }
+        end: { x: center.x, y: center.y - fixedPointTransformation }
     }
 
     const lineFromCenterToOppositeRotated = {
         start: center,
         // Both positions adjust for the position being in the top left corner so we have to remove one of the adjustments to get the center
-        end: { x: panPosition.x - rotatedPointX + radius, y: panPosition.y + diameter - rotatedPointY + radius }
+        end: { x: center.x - rotatedPointX + radius, y: center.y + diameter - rotatedPointY + radius }
     }
 
     const shouldFlipAngles = lineFromCenterToRotated.end.x < lineFromCenterToRotated.start.x
@@ -124,15 +135,21 @@ export const AngledCombination = (props: Props) => {
         lineOne: shouldFlipAngles ? lineFromCenterToOppositeRotated : lineFromCenterToFixed,
         lineTwo: shouldFlipAngles ? lineFromCenterToFixed : lineFromCenterToOppositeRotated
     }
+    console.log(component)
 
     return (
-        <View id="container">
+        <View style={styles({ radius: diameter }).container} id="container">
             <Animated.View
                 id="animated-view"
                 style={{
                     transform: [{ translateX: groupPan.x }, { translateY: groupPan.y }],
                     overflow: 'visible',
                     zIndex: 97
+                }}
+                onLayout={(event) => {
+                    const layout = event.nativeEvent.layout
+                    setComponent(layout)
+                    setCenter({ x: layout.x + panPosition.x +radius , y: layout.y + panPosition.y + radius  })
                 }}
                 {...groupPanResponder.panHandlers}>
                 <MoveablePoint
@@ -194,9 +211,12 @@ export const AngledCombination = (props: Props) => {
 }
 
 
+// TODO Refactor so that props are only required when accessing the circle styles
 const styles = (props?: any) => StyleSheet.create({
     container: {
-        justifyContent: 'center'
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     circle: {
         height: props.radius,

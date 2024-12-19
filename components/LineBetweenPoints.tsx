@@ -7,7 +7,7 @@ type Props = {
     radius: number,
     source: Coordinates,
     target: Coordinates,
-    height: number, 
+    height: number,
     width: number,
     color: string
 }
@@ -19,7 +19,10 @@ export const LineBetweenPoints = (props: Props) => {
     const edgeTarget = getEdges(props.radius, props.target, props.source)
 
     return (
-        <Svg height={props.height} width={props.width} style={[StyleSheet.absoluteFill, styles.line, { zIndex: 2, overflow: 'visible' }]}>
+        <Svg height={props.height}
+            width={props.width}
+            style={[StyleSheet.absoluteFill, styles.line, { zIndex: 2, overflow: 'visible' }]}
+        >
             <Line x1={edgeSource.x} y1={edgeSource.y} x2={edgeTarget.x} y2={edgeTarget.y} stroke={props.color} strokeWidth="4" />
         </Svg>
     )
